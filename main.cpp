@@ -1,5 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "opencv2/opencv.hpp"
+#include "tiny_dnn/tiny_dnn.h"
+#include <iostream>
+#include <random>
+#include <vector>
+#include <cmath>
+#include "agent.h"
 
 int main(int argc, char* argv[]) {
 
