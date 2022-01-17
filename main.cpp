@@ -92,14 +92,19 @@ int main(void)
         cv::inRange(hsv, cv::Scalar(valhmin, valsmin, valvmin), cv::Scalar(valhmax, valsmax, valvmax), mask);
         cv::minMaxLoc(mask, &min, &max);
         cv::bitwise_and(dst, dst, res, mask);
+        printf("clear\n");
         state.clear();
         rewards.clear();
         int nLabels = cv::connectedComponentsWithStats(mask, labelImage, statres, centroidsres, 8, 4);
         for (int i = 1; i < nLabels; ++i) {
             double* param = centroidsres.ptr<double>(1);
-            age.setposition((static_cast<int>(param[0])%10),(static_cast<int>(param[1])%10));
             
-            if (learn_end(age.now_pos(), gen) == 1) {
+            int x = static_cast<int>(param[0]);
+            int y = static_cast<int>(param[1]);
+            age.setposition((((x)-(x % 48))), (y - (y % 48)));
+            //state = ((((y - (y % 48)) * 10) + (((x)-(x % 48)))) / 48) % 100;
+            printf("%d, %d\n", x, y);
+            if (learn_end(age.now_pos(), gen) != 1) {
                 s = age.pos_vec();
                 gen += 1;
                 if (rand() % 10 < 3) {
@@ -133,6 +138,7 @@ int main(void)
                 rewards.push_back(rewards_vec(action, reward));
             }
         }
+        printf("train\n");
         mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
         //row_grav=centroidsres.at<double>(1,1);
         //centroidsres(1, 1);
