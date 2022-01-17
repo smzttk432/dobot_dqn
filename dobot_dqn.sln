@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dobot_dqn", "dobot_dqn.vcxproj", "{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Debug|x64.ActiveCfg = Debug|x64
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Debug|x64.Build.0 = Debug|x64
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Debug|x86.ActiveCfg = Debug|Win32
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Debug|x86.Build.0 = Debug|Win32
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Release|x64.ActiveCfg = Release|x64
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Release|x64.Build.0 = Release|x64
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Release|x86.ActiveCfg = Release|Win32
+		{AAF1A644-B3FD-4036-9B99-E78DAB19ADDD}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57C3771A-F7FD-4EBE-8A12-E428BE6F3F08}
+	EndGlobalSection
+EndGlobal
