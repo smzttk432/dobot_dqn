@@ -1,10 +1,10 @@
 #pragma once
 
 #include "tiny_dnn/tiny_dnn.h"
-#define MAXX 150
-#define MAXY 150
-#define GOALX 75
-#define GOALY 75
+#define MAXX 48
+#define MAXY 48
+#define GOALX 24
+#define GOALY 24
 #define GENMAX 500
 
 using namespace std;
