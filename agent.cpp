@@ -33,6 +33,14 @@ tiny_dnn::vec_t agent::now_pos() {
     return this->position;
 }
 
+tiny_dnn::vec_t agent::pos_vec() {
+    tiny_dnn::vec_t pos(MAXX * MAXY, 0);
+    float x = this->position[0];
+    float y = this->position[1];
+    pos[(x * MAXX) + y] = (float)1.0;
+    return pos;
+}
+
 void InitRand()
 {
     srand((unsigned int)time(NULL));
@@ -47,7 +55,7 @@ float compute_reward(float bdist, float ndist, tiny_dnn::vec_t pos) {
     if (ndist == 0) {
         return 1.0;
     }
-    else if (pos[0] < 0 || pos[1] < 0 || pos[0] >= MAXX || pos[1] >= MAXY) {
+    else if (pos[0] < 0 || pos[1] < 0 || pos[0]>=MAXX || pos[1]>=MAXY) {
         return -1.0;
     }
     else {
@@ -74,7 +82,7 @@ tiny_dnn::vec_t rewards_vec(int action, float reward) {
 }
 
 int learn_end(tiny_dnn::vec_t pos, int gen) {
-    if (pos[0] < 0 || pos[1] < 0 || gen == GENMAX || pos[0] >= MAXX || pos[1] >= MAXY || (pos[0] == GOALX && pos[1] == GOALY)) {
+    if (pos[0] < 0 || pos[1] < 0 || gen == GENMAX || pos[0]>=MAXX || pos[1]>=MAXY || (pos[0] == GOALX && pos[1] == GOALY)) {
         return 1;
     }
     else {
@@ -82,17 +90,10 @@ int learn_end(tiny_dnn::vec_t pos, int gen) {
     }
 }
 int check_goal(tiny_dnn::vec_t pos, int gen) {
-    if ((pos[0] == GOALX && pos[1] == GOALY)) {
+    if ( (pos[0] == GOALX && pos[1] == GOALY )) {
         return 1;
     }
     else {
         return 0;
     }
-}
-tiny_dnn::vec_t agent::pos_vec() {
-    tiny_dnn::vec_t pos(MAXX * MAXY, 0);
-    float x = this->position[0];
-    float y = this->position[1];
-    pos[(x * MAXX) + y] = (float)1.0;
-    return pos;
 }
