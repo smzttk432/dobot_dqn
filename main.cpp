@@ -87,6 +87,9 @@ int main(void)
     cv::createTrackbar("V_MAX", "state", &valvmax, 255, changevmax);
     for (i = 0; i < 1000; i++) {
         gen = 0;
+        printf("clear\n");
+        state.clear();
+        rewards.clear();
         cap.read(frame);
         frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
         binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
@@ -103,15 +106,15 @@ int main(void)
         double* param = vis.centroidsres.ptr<double>(1);
         int x = static_cast<int>(param[0]);
         int y = static_cast<int>(param[1]);
-        age.setposition((((x)-(x % 48))), (y - (y % 48)));
+        age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
         while (check_gen(age.now_pos(),gen,vis.nLabels)) {
             cap.read(frame);
             frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
             binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
             param = vis.centroidsres.ptr<double>(1);
-            int x = static_cast<int>(param[0]);
-            int y = static_cast<int>(param[1]);
-            age.setposition((((x)-(x % 48))), (y - (y % 48)));
+            x = static_cast<int>(param[0]);
+            y = static_cast<int>(param[1]);
+            age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
             s = age.pos_vec();
             gen += 1;
             if (rand() % 10 < 3) {
@@ -123,7 +126,8 @@ int main(void)
             }
             bdist = age.dist_goal();
             state.push_back(age.pos_vec());
-            while (s == age.pos_vec()) {
+            printf("%d\n", action);
+            while (s == age.pos_vec()&&vis.nLabels!=1) {
                 if (action == 3) cmd.x += 2;
                 if (action == 2) cmd.x -= 2;
                 if (action == 1) cmd.y += 2;
@@ -132,14 +136,37 @@ int main(void)
                 cap.read(frame);
                 frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
                 binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
-                double* param = vis.centroidsres.ptr<double>(1);
-                age.setposition((static_cast<int>(param[0]) % 10), (static_cast<int>(param[1]) % 10));
+                param = vis.centroidsres.ptr<double>(1);
+                x = static_cast<int>(param[0]);
+                y = static_cast<int>(param[1]);
+                age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
                 cv::imshow("canny", vis.mask);
             }
-            ndist = age.dist_goal();
-            reward = compute_reward(bdist, ndist, age.now_pos());
+            if (vis.nLabels == 1) {
+                reward = -10.0;
+            }
+            else {
+                ndist = age.dist_goal();
+                reward = compute_reward(bdist, ndist, age.now_pos());
+            }
             rewards.push_back(rewards_vec(action, reward));
             printf("%d, %d\n", (((x)-(x % 48))/10), (y - (y % 48))/10);
+            cv::imshow("canny", vis.mask);
+            gen++;
+        }
+        printf("train\n");
+        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
+        while (check_goal(age.now_pos()) == 1) {
+            cmd.x = pointx + (random_int(20) * rand2());
+            cmd.y = pointy + (random_int(20) * rand2());
+            ptpmove(executedCmdIndex, queuedCmdIndex, cmd);
+            cap.read(frame);
+            frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+            binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+            param = vis.centroidsres.ptr<double>(1);
+            x = static_cast<int>(param[0]);
+            y = static_cast<int>(param[1]);
+            age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
             cv::imshow("canny", vis.mask);
         }
     }
