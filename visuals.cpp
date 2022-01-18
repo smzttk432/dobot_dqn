@@ -6,7 +6,7 @@
 
 
 void binarize(cv::Mat frame, visuals* vis, int valhmin, int valsmin, int valvmin, int valhmax, int valsmax, int valvmax) {
-    
+    vis->dst = frame;
     cvtColor(vis->dst, vis->hsv, cv::COLOR_BGR2HSV);
     cv::inRange(vis->hsv, cv::Scalar(valhmin, valsmin, valvmin), cv::Scalar(valhmax, valsmax, valvmax), vis->mask);
     cv::minMaxLoc(vis->mask, &vis->min, &vis->max);
