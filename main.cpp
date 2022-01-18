@@ -11,6 +11,7 @@
 #include <vector>
 #include <cmath>
 #include "agent.h"
+#include "visuals.h"
 
 int valhmin = 99;
 void changehmin(int position, void* userdata); //trackbarコールバック関数（Rの変更）
@@ -73,10 +74,8 @@ int main(void)
     pointy = cmd.y;
     printf("%f %f %f\n", cmd.x, cmd.y, cmd.z);
     /*ここまでDobot関連*/
-    double min, max;
-    cv::Mat frame, hsv, mask, res, dst;
-    cv::Mat labelImage, statres, centroidsres; //フレーム,グレースケール,エッジ検出用オブジェクト
-    cv::Point grav;
+    visuals vis;
+    cv::Mat frame;
     cv::namedWindow("state");
     //トラックバーの設置
     cv::createTrackbar("H_MIN", "state", &valhmin, 255, changehmin);
@@ -86,17 +85,13 @@ int main(void)
     cv::createTrackbar("S_MAX", "state", &valsmax, 255, changesmax);
     cv::createTrackbar("V_MAX", "state", &valvmax, 255, changevmax);
     while (cap.read(frame)) { //ループ
-        dst = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
-        cvtColor(dst, hsv, cv::COLOR_BGR2HSV);
-        cv::inRange(hsv, cv::Scalar(valhmin, valsmin, valvmin), cv::Scalar(valhmax, valsmax, valvmax), mask);
-        cv::minMaxLoc(mask, &min, &max);
-        cv::bitwise_and(dst, dst, res, mask);
+        frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+        binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
         printf("clear\n");
         state.clear();
         rewards.clear();
-        int nLabels = cv::connectedComponentsWithStats(mask, labelImage, statres, centroidsres, 8, 4);
-        for (int i = 1; i < nLabels; ++i) {
-            double* param = centroidsres.ptr<double>(1);
+        for (i = 1; i < vis.nLabels; ++i) {
+            double* param = vis.centroidsres.ptr<double>(1);
             
             int x = static_cast<int>(param[0]);
             int y = static_cast<int>(param[1]);
@@ -123,14 +118,11 @@ int main(void)
                     if (action == 0) cmd.y -= 2;
                     ptpmove(executedCmdIndex, queuedCmdIndex, cmd);
                     cap.read(frame);
-                    cvtColor(dst, hsv, cv::COLOR_BGR2HSV);
-                    cv::inRange(hsv, cv::Scalar(valhmin, valsmin, valvmin), cv::Scalar(valhmax, valsmax, valvmax), mask);
-                    cv::minMaxLoc(mask, &min, &max);
-                    cv::bitwise_and(dst, dst, res, mask);
-                    int nLabels = cv::connectedComponentsWithStats(mask, labelImage, statres, centroidsres, 8, 4);
-                    double* param = centroidsres.ptr<double>(1);
+                    frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+                    binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+                    double* param = vis.centroidsres.ptr<double>(1);
                     age.setposition((static_cast<int>(param[0]) % 10), (static_cast<int>(param[1]) % 10));
-                    cv::imshow("canny", mask);
+                    cv::imshow("canny", vis.mask);
                 }
                 ndist = age.dist_goal();
                 reward = compute_reward(bdist, ndist, age.now_pos());
@@ -141,7 +133,7 @@ int main(void)
         mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
         //row_grav=centroidsres.at<double>(1,1);
         //centroidsres(1, 1);
-        cv::imshow("canny", mask); //画像の表示
+        cv::imshow("canny", vis.mask); //画像の表示
 
 
 
