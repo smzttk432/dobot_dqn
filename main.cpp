@@ -38,6 +38,7 @@ int main(void)
     else {
         printf("Device open!!\n");
     }
+    InitRand();
     /*qlearn関連*/
     tiny_dnn::network<tiny_dnn::sequential> mynet;
     mynet << tiny_dnn::fully_connected_layer(MAXX * MAXY, 256, false) << tiny_dnn::relu_layer()
@@ -84,7 +85,92 @@ int main(void)
     cv::createTrackbar("H_MAX", "state", &valhmax, 255, changehmax);
     cv::createTrackbar("S_MAX", "state", &valsmax, 255, changesmax);
     cv::createTrackbar("V_MAX", "state", &valvmax, 255, changevmax);
-    while (cap.read(frame)) { //ループ
+    for (i = 0; i < 1000; i++) {
+        gen = 0;
+        printf("clear\n");
+        state.clear();
+        rewards.clear();
+        cap.read(frame);
+        frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+        binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+        printf("%d\n", vis.nLabels);
+        while (vis.nLabels == 1) {
+            cmd.x = pointx + (random_int(20) * rand2());
+            cmd.y = pointy + (random_int(20) * rand2());
+            ptpmove(executedCmdIndex, queuedCmdIndex, cmd);
+            cap.read(frame);
+            frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+            binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+            cv::imshow("canny", vis.mask);
+        }
+        double* param = vis.centroidsres.ptr<double>(1);
+        int x = static_cast<int>(param[0]);
+        int y = static_cast<int>(param[1]);
+        age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
+        while (check_gen(age.now_pos(),gen,vis.nLabels)) {
+            cap.read(frame);
+            frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+            binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+            param = vis.centroidsres.ptr<double>(1);
+            x = static_cast<int>(param[0]);
+            y = static_cast<int>(param[1]);
+            age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
+            s = age.pos_vec();
+            gen += 1;
+            if (rand() % 10 < 3) {
+                action = (rand() % 4);
+            }
+            else {
+                act = mynet.predict(age.pos_vec());
+                action = act_by_net(act);
+            }
+            bdist = age.dist_goal();
+            state.push_back(age.pos_vec());
+            printf("%d\n", action);
+            while (s == age.pos_vec()&&vis.nLabels!=1) {
+                if (action == 3) cmd.x += 2;
+                if (action == 2) cmd.x -= 2;
+                if (action == 1) cmd.y += 2;
+                if (action == 0) cmd.y -= 2;
+                ptpmove(executedCmdIndex, queuedCmdIndex, cmd);
+                cap.read(frame);
+                frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+                binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+                param = vis.centroidsres.ptr<double>(1);
+                x = static_cast<int>(param[0]);
+                y = static_cast<int>(param[1]);
+                age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
+                cv::imshow("canny", vis.mask);
+            }
+            if (vis.nLabels == 1) {
+                reward = -10.0;
+            }
+            else {
+                ndist = age.dist_goal();
+                reward = compute_reward(bdist, ndist, age.now_pos());
+            }
+            rewards.push_back(rewards_vec(action, reward));
+            printf("%d, %d\n", (((x)-(x % 48))/10), (y - (y % 48))/10);
+            cv::imshow("canny", vis.mask);
+            gen++;
+        }
+        printf("train\n");
+        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
+        while (check_goal(age.now_pos()) == 1) {
+            cmd.x = pointx + (random_int(20) * rand2());
+            cmd.y = pointy + (random_int(20) * rand2());
+            ptpmove(executedCmdIndex, queuedCmdIndex, cmd);
+            cap.read(frame);
+            frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
+            binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
+            param = vis.centroidsres.ptr<double>(1);
+            x = static_cast<int>(param[0]);
+            y = static_cast<int>(param[1]);
+            age.setposition((((x)-(x % 48)) / 10), (y - (y % 48)) / 10);
+            cv::imshow("canny", vis.mask);
+        }
+    }
+    /*while (cap.read(frame)) { //ループ
         frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
         binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
         printf("clear\n");
@@ -92,7 +178,7 @@ int main(void)
         rewards.clear();
         for (i = 1; i < vis.nLabels; ++i) {
             double* param = vis.centroidsres.ptr<double>(1);
-            
+
             int x = static_cast<int>(param[0]);
             int y = static_cast<int>(param[1]);
             age.setposition((((x)-(x % 48))), (y - (y % 48)));
@@ -106,12 +192,13 @@ int main(void)
                 }
                 else {
                     act = mynet.predict(age.pos_vec());
-                    action = act_by_net(act);   
+                    action = act_by_net(act);
                 }
                 bdist = age.dist_goal();
                 state.push_back(age.pos_vec());
                 // snext = nexts(s, a);
-                while (s == age.pos_vec()) {
+                while (s == 
+                age.pos_vec()) {
                     if (action == 3) cmd.x += 2;
                     if (action == 2) cmd.x -= 2;
                     if (action == 1) cmd.y += 2;
@@ -128,35 +215,36 @@ int main(void)
                 reward = compute_reward(bdist, ndist, age.now_pos());
                 rewards.push_back(rewards_vec(action, reward));
             }
-        }
-        printf("train\n");
-        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
-        //row_grav=centroidsres.at<double>(1,1);
-        //centroidsres(1, 1);
-        cv::imshow("canny", vis.mask); //画像の表示
-
-
-
-        int key = cv::waitKey(1); //キー入力
-        if (key == 'q') {
-
-            cv::destroyWindow("canny"); //ウィンドウを閉じる
-            cap.release();
-            break; //whileループから抜ける
-        }
-        else if (key == 's'/*115*/)//sが押されたとき
-        {
-            //フレーム画像を保存する．
-            cv::imwrite("img.png", frame);
-        }
-    }
-    //res=cv::Mat::zeros(res);
-    cv::destroyAllWindows();
-
-    //SetHOMECmd(&homecommand, true, &queuedCmdIndex);
-    //homemove(homecommand, executedCmdIndex, queuedCmdIndex);
-    dobotdisconnect(connection);
-    return 0;
+        }*/
+        //        printf("train\n");
+        //        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
+        //        //row_grav=centroidsres.at<double>(1,1);
+        //        //centroidsres(1, 1);
+        //        cv::imshow("canny", vis.mask); //画像の表示
+        //
+        //
+        //
+        //        int key = cv::waitKey(1); //キー入力
+        //        if (key == 'q') {
+        //
+        //            cv::destroyWindow("canny"); //ウィンドウを閉じる
+        //            cap.release();
+        //            break; //whileループから抜ける
+        //        }
+        //        else if (key == 's'/*115*/)//sが押されたとき
+        //        {
+        //            //フレーム画像を保存する．
+        //            cv::imwrite("img.png", frame);
+        //        }
+        //    }
+        //    //res=cv::Mat::zeros(res);
+        //    cv::destroyAllWindows();
+        //
+        //    //SetHOMECmd(&homecommand, true, &queuedCmdIndex);
+        //    //homemove(homecommand, executedCmdIndex, queuedCmdIndex);
+        //    dobotdisconnect(connection);
+        //    return 0;
+        //}
 }
 
 //trackbarコールバック関数（Rの変更）
