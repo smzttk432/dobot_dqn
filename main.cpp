@@ -84,7 +84,13 @@ int main(void)
     cv::createTrackbar("H_MAX", "state", &valhmax, 255, changehmax);
     cv::createTrackbar("S_MAX", "state", &valsmax, 255, changesmax);
     cv::createTrackbar("V_MAX", "state", &valvmax, 255, changevmax);
-    while (cap.read(frame)) { //ループ
+    for (i = 0; i < 1000; i++) {
+        gen = 0;
+        while (check_gen(age.now_pos(),gen,vis.nLabels)) {
+
+        }
+    }
+    /*while (cap.read(frame)) { //ループ
         frame = cv::Mat(frame, cv::Rect(80, 0, 480, 480));
         binarize(frame, &vis, valhmin, valsmin, valvmin, valhmax, valsmax, valvmax);
         printf("clear\n");
@@ -92,7 +98,7 @@ int main(void)
         rewards.clear();
         for (i = 1; i < vis.nLabels; ++i) {
             double* param = vis.centroidsres.ptr<double>(1);
-            
+
             int x = static_cast<int>(param[0]);
             int y = static_cast<int>(param[1]);
             age.setposition((((x)-(x % 48))), (y - (y % 48)));
@@ -106,7 +112,7 @@ int main(void)
                 }
                 else {
                     act = mynet.predict(age.pos_vec());
-                    action = act_by_net(act);   
+                    action = act_by_net(act);
                 }
                 bdist = age.dist_goal();
                 state.push_back(age.pos_vec());
@@ -128,35 +134,36 @@ int main(void)
                 reward = compute_reward(bdist, ndist, age.now_pos());
                 rewards.push_back(rewards_vec(action, reward));
             }
-        }
-        printf("train\n");
-        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
-        //row_grav=centroidsres.at<double>(1,1);
-        //centroidsres(1, 1);
-        cv::imshow("canny", vis.mask); //画像の表示
-
-
-
-        int key = cv::waitKey(1); //キー入力
-        if (key == 'q') {
-
-            cv::destroyWindow("canny"); //ウィンドウを閉じる
-            cap.release();
-            break; //whileループから抜ける
-        }
-        else if (key == 's'/*115*/)//sが押されたとき
-        {
-            //フレーム画像を保存する．
-            cv::imwrite("img.png", frame);
-        }
-    }
-    //res=cv::Mat::zeros(res);
-    cv::destroyAllWindows();
-
-    //SetHOMECmd(&homecommand, true, &queuedCmdIndex);
-    //homemove(homecommand, executedCmdIndex, queuedCmdIndex);
-    dobotdisconnect(connection);
-    return 0;
+        }*/
+        //        printf("train\n");
+        //        mynet.train<tiny_dnn::mse>(optim, state, rewards, 1, 1);
+        //        //row_grav=centroidsres.at<double>(1,1);
+        //        //centroidsres(1, 1);
+        //        cv::imshow("canny", vis.mask); //画像の表示
+        //
+        //
+        //
+        //        int key = cv::waitKey(1); //キー入力
+        //        if (key == 'q') {
+        //
+        //            cv::destroyWindow("canny"); //ウィンドウを閉じる
+        //            cap.release();
+        //            break; //whileループから抜ける
+        //        }
+        //        else if (key == 's'/*115*/)//sが押されたとき
+        //        {
+        //            //フレーム画像を保存する．
+        //            cv::imwrite("img.png", frame);
+        //        }
+        //    }
+        //    //res=cv::Mat::zeros(res);
+        //    cv::destroyAllWindows();
+        //
+        //    //SetHOMECmd(&homecommand, true, &queuedCmdIndex);
+        //    //homemove(homecommand, executedCmdIndex, queuedCmdIndex);
+        //    dobotdisconnect(connection);
+        //    return 0;
+        //}
 }
 
 //trackbarコールバック関数（Rの変更）

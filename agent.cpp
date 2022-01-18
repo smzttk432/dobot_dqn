@@ -89,11 +89,19 @@ int learn_end(tiny_dnn::vec_t pos, int gen) {
         return 0;
     }
 }
-int check_goal(tiny_dnn::vec_t pos, int gen) {
+int check_goal(tiny_dnn::vec_t pos) {
     if ( (pos[0] == GOALX && pos[1] == GOALY )) {
         return 1;
     }
     else {
         return 0;
+    }
+}
+int check_gen(tiny_dnn::vec_t pos, int gen, int nLabels) {
+    if (gen == GENMAX || (pos[0] == GOALX && pos[1] == GOALY) || nLabels < 2) {
+        return 0;
+    }
+    else {
+        return 1;
     }
 }

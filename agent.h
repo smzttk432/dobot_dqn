@@ -30,4 +30,6 @@ tiny_dnn::vec_t rewards_vec(int action, float reward);
 
 int learn_end(tiny_dnn::vec_t pos, int gen);
 
-int check_goal(tiny_dnn::vec_t pos, int gen);
+int check_goal(tiny_dnn::vec_t pos);
+
+int check_gen(tiny_dnn::vec_t pos, int gen, int nLabels);
