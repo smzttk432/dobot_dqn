@@ -105,3 +105,21 @@ int check_gen(tiny_dnn::vec_t pos, int gen, int nLabels) {
         return 1;
     }
 }
+
+int rand2()
+{
+    int rnd;
+    int ex;
+    /*—”‚ÌÅ‘å’l‚ğœ‚­*/
+    while ((rnd = rand()) == RAND_MAX);
+    /*—”‚ÌŒvZ*/
+    if ((int)((double)rnd / RAND_MAX * 2) == 0) {
+        ex = 1;
+    }
+    else {
+        ex = -1;
+    }
+
+    return ex;
+}
+

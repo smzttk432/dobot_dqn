@@ -33,3 +33,5 @@ int learn_end(tiny_dnn::vec_t pos, int gen);
 int check_goal(tiny_dnn::vec_t pos);
 
 int check_gen(tiny_dnn::vec_t pos, int gen, int nLabels);
+
+int rand2();
